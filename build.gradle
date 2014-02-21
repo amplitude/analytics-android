@@ -1,0 +1,77 @@
+apply plugin: 'android-library'
+apply plugin: 'maven'
+apply plugin: 'signing'
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:0.8.3'
+    }
+}
+
+android {
+    compileSdkVersion 19
+    buildToolsVersion '19.0.1'
+    sourceSets {
+    	main { 
+    		manifest.srcFile 'AndroidManifest.xml'
+    	}
+    }
+}
+
+version = "0.6.1"
+group = "io.segment.android"
+
+configurations {
+    archives {
+        extendsFrom configurations.default
+    }
+}
+
+signing {
+    required { has("release") && gradle.taskGraph.hasTask("uploadArchives") }
+    sign configurations.archives
+}
+
+uploadArchives {
+    configuration = configurations.archives
+    repositories.mavenDeployer {
+        beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+        repository(url: sonatypeRepo) {
+            authentication(userName: sonatypeUsername, password: sonatypePassword)
+        }
+
+        pom.project {
+            name 'Segment.io Android Library'
+            packaging 'jar'
+            description 'A Segment.io Android Library'
+            url 'https://github.com/segmentio/android-android'
+
+            scm {
+                url 'scm:git@github.com:segmentio/android-android.git'
+                connection 'scm:git@github.com:segmentio/android-android.git'
+                developerConnection 'scm:git@github.com:segmentio/android-android.git'
+            }
+
+            licenses {
+                license {
+                    name 'MIT'
+                    url 'http://opensource.org/licenses/MIT'
+                    distribution 'repo'
+                }
+            }
+
+            developers {
+                developer {
+                    id 'ivolo'
+                    name 'Ilya Volodarsky'
+                    email 'ilya@segment.io'
+                }
+            }
+        }
+    }
+}
